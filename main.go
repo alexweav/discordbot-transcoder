@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
+	"github.com/alexweav/discordbot-transcoder/transcoder"
 	"log"
 	"os"
-	"github.com/alexweav/discordbot-transcoder/transcoder"
 	"time"
 )
 
@@ -25,8 +25,8 @@ func run() int {
 
 	go func() {
 		time.Sleep(5 * time.Second)
-		status <-0
+		status <- 0
 	}()
-	
+
 	return <-status
 }
