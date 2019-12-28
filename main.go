@@ -1,17 +1,27 @@
+// Contains entry points and provides service initialization logic.
 package main
 
 import (
 	"github.com/alexweav/discordbot-transcoder/transcoder"
 	"log"
 	"os"
-	"time"
+	"os/signal"
+	"syscall"
 )
 
+// Entry point for the service.
 func main() {
-	os.Exit(run())
+	status := run()
+	log.Printf("Shutting down with status code %d.\n", status)
+	os.Exit(status)
 }
 
+// Connects to RabbitMQ and initializes the service.
 func run() int {
+	shutdown := make(chan int)
+	go catchSignals(shutdown)
+
+	log.Println("Attempting to connect to RabbitMQ...")
 	conn, err := transcoder.Connect("localhost", 5672, "guest", "guest")
 	if err != nil {
 		log.Fatalf("Could not connect to RabbitMQ: %s", err)
@@ -19,13 +29,15 @@ func run() int {
 	}
 	defer conn.Close()
 
-	status := make(chan int)
 	log.Println("Connected!")
+	return <-shutdown
+}
 
-	go func() {
-		time.Sleep(5 * time.Second)
-		status <- 0
-	}()
-
-	return <-status
+// Catches shutdown signals so resources can be cleaned up.
+func catchSignals(shutdown chan int) {
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
+	sig := <-signals
+	log.Printf("Received exit signal: %v", sig)
+	shutdown <- 0
 }
