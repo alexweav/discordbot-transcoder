@@ -33,6 +33,7 @@ jobs:
     - name: Lint
       run: |
         if [[ $(gofmt -l .) ]]; then
+            gofmt -l .
             exit 1
         else
             exit 0
