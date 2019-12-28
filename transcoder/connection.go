@@ -32,6 +32,7 @@ func Connect(address string, port int, user string, pass string) (*Connection, e
 }
 
 func (connection *Connection) Close() {
+	log.Println("Closing connection to RabbitMQ.")
 	connection.Channel.Close()
 	connection.Connection.Close()
 }
