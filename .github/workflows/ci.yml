@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - package-registry
 
 jobs:
   build:
