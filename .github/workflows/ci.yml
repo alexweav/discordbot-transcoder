@@ -1,0 +1,17 @@
+name: DiscordBot-Transcoder-CI
+
+on:
+  push:
+    branches:
+      - master
+      - ci
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Build Docker image
+      run: docker build . -t discordbot-transcoder
