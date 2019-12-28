@@ -31,12 +31,12 @@ jobs:
         fi
 
     - name: Lint
-    run: |
-      if [[ $(gofmt -l .) ]]; then
-          exit 1
-      else
-          exit 0
-      fi
+      run: |
+        if [[ $(gofmt -l .) ]]; then
+            exit 1
+        else
+            exit 0
+        fi
 
     - name: Build
       run: go build -v .
