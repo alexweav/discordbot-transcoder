@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/alexweav/discordbot-transcoder/transcoder"
 	"log"
 	"os"
@@ -21,7 +20,7 @@ func run() int {
 	defer conn.Close()
 
 	status := make(chan int)
-	fmt.Println(transcoder.Hello())
+	log.Println("Connected!")
 
 	go func() {
 		time.Sleep(5 * time.Second)
