@@ -33,6 +33,7 @@ jobs:
     - name: Lint
       run: |
         if [[ $(gofmt -l .) ]]; then
+            echo "Gofmt check failed. Please run gofmt on source files."
             gofmt -l .
             exit 1
         else
