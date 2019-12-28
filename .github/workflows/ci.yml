@@ -25,3 +25,4 @@ jobs:
     - name: Push to Package Registry
       run: |
         docker tag discordbot-transcoder:latest docker.pkg.github.com/alexweav/discordbot-transcoder/discordbot-transcoder:latest
+        docker push docker.pkg.github.com/alexweav/discordbot-transcoder/discordbot-transcoder:latest
