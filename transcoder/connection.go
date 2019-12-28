@@ -8,7 +8,7 @@ import (
 
 type Connection struct {
 	Connection *amqp.Connection
-	Channel *amqp.Channel
+	Channel    *amqp.Channel
 }
 
 func Connect(address string, port int, user string, pass string) (*Connection, error) {
@@ -27,7 +27,7 @@ func Connect(address string, port int, user string, pass string) (*Connection, e
 
 	return &Connection{
 		Connection: conn,
-		Channel: channel,
+		Channel:    channel,
 	}, nil
 }
 
