@@ -14,3 +14,14 @@ jobs:
 
     - name: Build Docker image
       run: docker build . -t discordbot-transcoder
+
+    - name: GitHub Package Registry Login
+      env:
+        GITHUB_ACTOR: ${{ github.actor }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: docker login docker.pkg.github.com --username ${GITHUB_ACTOR} --password ${GITHUB_TOKEN}
+
+    - name: Push to Package Registry
+      run: |
+        docker tag discordbot-transcoder:latest docker.pkg.github.com/alexweav/discordbot-transcoder/discordbot-transcoder:latest
+        docker push docker.pkg.github.com/alexweav/discordbot-transcoder/discordbot-transcoder:latest
