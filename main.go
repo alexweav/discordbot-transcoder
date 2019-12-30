@@ -19,9 +19,7 @@ func main() {
 // Connects to RabbitMQ and initializes the service.
 func run() int {
 	shutdown := make(chan int)
-	go catchSignals(shutdown)
 
-	log.Println("Attempting to connect to RabbitMQ...")
 	conn, err := transcoder.Connect("localhost", 5672, "guest", "guest")
 	if err != nil {
 		log.Fatalf("Could not connect to RabbitMQ: %s", err)
@@ -30,6 +28,8 @@ func run() int {
 	defer conn.Close()
 
 	log.Println("Connected!")
+
+	go catchSignals(shutdown)
 	return <-shutdown
 }
 
