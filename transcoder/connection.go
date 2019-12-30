@@ -4,16 +4,29 @@ import (
 	"fmt"
 	"github.com/streadway/amqp"
 	"log"
+	"net"
+	"time"
 )
 
+// The base timeout for AMQP connections.
+const amqpConnectionTimeout = 30
+
+// The number of connection attempts to make before exiting.
+const numRetries = 5
+
+// The amount of time to wait between connection events, in the event of a failure.
+const retryWaitPeriod = 10 * time.Second
+
+// Represents a channel and connection.
 type Connection struct {
 	Connection *amqp.Connection
 	Channel    *amqp.Channel
 }
 
-func Connect(address string, port int, user string, pass string) (*Connection, error) {
+// Establishes a new connection to a RabbitMQ instance.
+func Connect(address string, port int, user, pass string) (*Connection, error) {
 	uri := fmt.Sprintf("amqp://%s:%s@%s:%d", user, pass, address, port)
-	conn, err := amqp.Dial(uri)
+	conn, err := establishConnection(uri, amqpConnectionTimeout * time.Second)
 	if err != nil {
 		log.Fatalf("Could not connect to RabbitMQ: %s", err)
 		return nil, err
@@ -31,8 +44,34 @@ func Connect(address string, port int, user string, pass string) (*Connection, e
 	}, nil
 }
 
+// Closes a connection.
 func (connection *Connection) Close() {
 	log.Println("Closing connection to RabbitMQ.")
 	connection.Channel.Close()
 	connection.Connection.Close()
+}
+
+// Establishes a connection to RabbitMQ.
+func establishConnection(uri string, timeout time.Duration) (*amqp.Connection, error) {
+	log.Println("Attempting to connect to RabbitMQ...")
+
+	for i := 0; i < numRetries - 1; i++ {
+		if conn, err := dialWithTimeout(uri, timeout); err == nil {
+			return conn, err
+		} else {
+			log.Printf("Connection failed (%v). Retrying in 10 seconds...", err)
+			time.Sleep(retryWaitPeriod)
+		}
+	}
+	return dialWithTimeout(uri, timeout)
+}
+
+// Connects to a RabbitMQ instance at the given URI with a custom timeout.
+func dialWithTimeout(uri string, timeout time.Duration) (*amqp.Connection, error) {
+	config := amqp.Config {
+		Dial: func(network, addr string) (net.Conn, error) {
+			return net.DialTimeout(network, addr, timeout)
+		},
+	}
+	return amqp.DialConfig(uri, config)
 }
