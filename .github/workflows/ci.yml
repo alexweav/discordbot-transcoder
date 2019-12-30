@@ -15,13 +15,13 @@ jobs:
     - name: Build Docker image
       run: docker build . -t discordbot-transcoder
 
-    - name: GitHub Package Registry Login
+    - name: Push Container to AWS ECR
       env:
-        GITHUB_ACTOR: ${{ github.actor }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: docker login docker.pkg.github.com --username ${GITHUB_ACTOR} --password ${GITHUB_TOKEN}
-
-    - name: Push to Package Registry
+        AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION: us-east-2
       run: |
-        docker tag discordbot-transcoder:latest docker.pkg.github.com/alexweav/discordbot-transcoder/discordbot-transcoder:latest
-        docker push docker.pkg.github.com/alexweav/discordbot-transcoder/discordbot-transcoder:latest
+        aws ecr get-login --no-include-email --region ${AWS_REGION} | sh
+        docker tag discordbot-transcoder:latest ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/discordbot-transcoder:latest
+        docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/discordbot-transcoder:latest
