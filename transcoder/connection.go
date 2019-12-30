@@ -26,7 +26,7 @@ type Connection struct {
 // Establishes a new connection to a RabbitMQ instance.
 func Connect(address string, port int, user, pass string) (*Connection, error) {
 	uri := fmt.Sprintf("amqp://%s:%s@%s:%d", user, pass, address, port)
-	conn, err := establishConnection(uri, amqpConnectionTimeout * time.Second)
+	conn, err := establishConnection(uri, amqpConnectionTimeout*time.Second)
 	if err != nil {
 		log.Fatalf("Could not connect to RabbitMQ: %s", err)
 		return nil, err
@@ -55,7 +55,7 @@ func (connection *Connection) Close() {
 func establishConnection(uri string, timeout time.Duration) (*amqp.Connection, error) {
 	log.Println("Attempting to connect to RabbitMQ...")
 
-	for i := 0; i < numRetries - 1; i++ {
+	for i := 0; i < numRetries-1; i++ {
 		if conn, err := dialWithTimeout(uri, timeout); err == nil {
 			return conn, err
 		} else {
@@ -68,7 +68,7 @@ func establishConnection(uri string, timeout time.Duration) (*amqp.Connection, e
 
 // Connects to a RabbitMQ instance at the given URI with a custom timeout.
 func dialWithTimeout(uri string, timeout time.Duration) (*amqp.Connection, error) {
-	config := amqp.Config {
+	config := amqp.Config{
 		Dial: func(network, addr string) (net.Conn, error) {
 			return net.DialTimeout(network, addr, timeout)
 		},
