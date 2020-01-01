@@ -55,12 +55,16 @@ func (connection *Connection) Close() {
 func establishConnection(uri string, timeout time.Duration) (*amqp.Connection, error) {
 	log.Println("Attempting to connect to RabbitMQ...")
 
+	backoff := NewConstantBackoff(ConstantBackoffPolicy{
+		Interval: retryWaitPeriod,
+	})
+
 	for i := 0; i < numRetries-1; i++ {
 		if conn, err := dialWithTimeout(uri, timeout); err == nil {
 			return conn, err
 		} else {
 			log.Printf("Connection failed (%v). Retrying in 10 seconds...", err)
-			time.Sleep(retryWaitPeriod)
+			time.Sleep(backoff.Next())
 		}
 	}
 	return dialWithTimeout(uri, timeout)
