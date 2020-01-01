@@ -2,6 +2,9 @@ package transcoder
 
 import "time"
 
+// Indicates that no more retries should occur for the operation.
+const Stop time.Duration = -1
+
 // The default interval for a constant back-off.
 const DefaultConstantBackoffInterval = 10 * time.Second
 
@@ -13,12 +16,15 @@ type Backoff interface {
 
 // A back-off policy where retries occur at the same constant interval.
 type constantBackoff struct {
-	interval time.Duration
+	interval       time.Duration
+	elapsedTime    time.Duration
+	maxElapsedTime time.Duration
 }
 
 // Specifies the rate of a constant back-off policy.
 type ConstantBackoffPolicy struct {
-	Interval time.Duration
+	Interval       time.Duration
+	MaxElapsedTime time.Duration
 }
 
 // Builds a new constant back-off policy, where retries occur at the same interval.
@@ -28,17 +34,27 @@ func NewConstantBackoff(policy ConstantBackoffPolicy) Backoff {
 		interval = DefaultConstantBackoffInterval
 	}
 	return &constantBackoff{
-		interval: interval,
+		interval:       interval,
+		elapsedTime:    0,
+		maxElapsedTime: policy.MaxElapsedTime,
 	}
 }
 
 // Gets the next back-off interval from a constant backoff.
 func (backoff *constantBackoff) Next() time.Duration {
+	if backoff.maxElapsedTime > 0 {
+		if backoff.elapsedTime+backoff.interval > backoff.maxElapsedTime {
+			return Stop
+		}
+		backoff.elapsedTime += backoff.interval
+	}
 	return backoff.interval
 }
 
 // Resets a constant backoff.
-func (backoff *constantBackoff) Reset() {}
+func (backoff *constantBackoff) Reset() {
+	backoff.elapsedTime = 0
+}
 
 /*
 A back-off policy which increases the retry interval for each retry attempt
