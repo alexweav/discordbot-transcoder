@@ -34,3 +34,10 @@ func TestConstantBackoffReturnsSameIntervalAfterReset(t *testing.T) {
 		t.Errorf("Next() = %v after Reset(); %v before Reset()", after, before)
 	}
 }
+
+func TestConstantBackoffDefaultsToTenSeconds(t *testing.T) {
+	backoff := NewConstantBackoff(ConstantBackoffPolicy{})
+	if got := backoff.Next(); got != 10*time.Second {
+		t.Errorf("Default initial Next() = %d; want %d", got, 10*time.Second)
+	}
+}
