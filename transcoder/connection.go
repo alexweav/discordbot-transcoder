@@ -14,9 +14,6 @@ const amqpConnectionTimeout = 30
 // The number of connection attempts to make before exiting.
 const numRetries = 5
 
-// The amount of time to wait between connection events, in the event of a failure.
-const retryWaitPeriod = 10 * time.Second
-
 // Represents a channel and connection.
 type Connection struct {
 	Connection *amqp.Connection
@@ -56,15 +53,15 @@ func establishConnection(uri string, timeout time.Duration) (*amqp.Connection, e
 	log.Println("Attempting to connect to RabbitMQ...")
 
 	backoff := NewConstantBackoff(ConstantBackoffPolicy{
-		Interval: retryWaitPeriod,
+		MaxElapsedTime: 60 * time.Second,
 	})
 
-	for i := 0; i < numRetries-1; i++ {
+	for interval := backoff.Next(); interval != Stop; interval = backoff.Next() {
 		if conn, err := dialWithTimeout(uri, timeout); err == nil {
 			return conn, err
 		} else {
 			log.Printf("Connection failed (%v). Retrying in 10 seconds...", err)
-			time.Sleep(backoff.Next())
+			time.Sleep(interval)
 		}
 	}
 	return dialWithTimeout(uri, timeout)
