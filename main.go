@@ -29,6 +29,11 @@ func run() int {
 
 	log.Println("Connected!")
 
+	worker := transcoder.InitializeWorkQueueSubscriber(conn, "test.queue")
+	defer worker.Close()
+
+	transcoder.Start(worker)
+
 	go catchSignals(shutdown)
 	return <-shutdown
 }
