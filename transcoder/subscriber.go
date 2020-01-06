@@ -6,7 +6,7 @@ import (
 )
 
 type Worker struct {
-	Channel *amqp.Channel
+	Channel  *amqp.Channel
 	Messages <-chan amqp.Delivery
 }
 
@@ -17,9 +17,9 @@ func InitializeWorkQueueSubscriber(conn *Connection, routingKey string) *Worker 
 	}
 
 	err = workChannel.Qos(
-		1,  // prefetch count
-		0,  // prefetch size
-		false,  // global
+		1,     // prefetch count
+		0,     // prefetch size
+		false, // global
 	)
 	if err != nil {
 		log.Fatalf("Error setting channel QoS: %v", err)
@@ -27,11 +27,11 @@ func InitializeWorkQueueSubscriber(conn *Connection, routingKey string) *Worker 
 
 	queue, err := workChannel.QueueDeclare(
 		routingKey,
-		false,	// durable
-		false,  // delete when unused
-		false,  // exclusive
-		false,  // no-wait
-		nil,    // args
+		false, // durable
+		false, // delete when unused
+		false, // exclusive
+		false, // no-wait
+		nil,   // args
 	)
 	if err != nil {
 		log.Fatalf("Error declaring queue: %v", err)
@@ -39,16 +39,16 @@ func InitializeWorkQueueSubscriber(conn *Connection, routingKey string) *Worker 
 
 	messages, err := workChannel.Consume(
 		queue.Name,
-		"",	// consumer
+		"",    // consumer
 		false, // auto-ack
 		false, // exclusive
 		false, // no-local
 		false, // no-wait
-		nil, // args
+		nil,   // args
 	)
-	
+
 	return &Worker{
-		Channel: workChannel,
+		Channel:  workChannel,
 		Messages: messages,
 	}
 }
