@@ -31,7 +31,7 @@ func Connect(address string, port int, user, pass string) (*Connection, error) {
 
 	channel, err := conn.Channel()
 	if err != nil {
-		log.Fatalf("Could not open channel: %s", err)
+		log.Fatalf("Could not open main channel: %s", err)
 		return nil, err
 	}
 
