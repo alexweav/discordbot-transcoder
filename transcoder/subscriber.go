@@ -3,14 +3,19 @@ package transcoder
 import (
 	"github.com/streadway/amqp"
 	"log"
+	"sync"
 )
 
 type Worker struct {
-	Channel  *amqp.Channel
-	Messages <-chan amqp.Delivery
+	Channel     *amqp.Channel
+	Messages    <-chan amqp.Delivery
+	shutdown    chan bool
+	workerGroup sync.WaitGroup
 }
 
-func InitializeWorkQueueSubscriber(conn *Connection, routingKey string) *Worker {
+type Handler func(message amqp.Delivery)
+
+func (conn *Connection) InitializeWorkQueueSubscriber(routingKey string, handler Handler) *Worker {
 	workChannel, err := conn.Connection.Channel()
 	if err != nil {
 		log.Fatalf("Error opening work queue subscriber channel: %v", err)
@@ -47,13 +52,42 @@ func InitializeWorkQueueSubscriber(conn *Connection, routingKey string) *Worker 
 		nil,   // args
 	)
 
-	return &Worker{
-		Channel:  workChannel,
-		Messages: messages,
+	worker := Worker{
+		Channel:     workChannel,
+		Messages:    messages,
+		shutdown:    make(chan bool),
+		workerGroup: sync.WaitGroup{},
+	}
+
+	go worker.consume(handler)
+	return &worker
+}
+
+func (worker *Worker) consume(handler Handler) {
+	for {
+		select {
+		case message := <-worker.Messages:
+			worker.workerGroup.Add(1)
+			go worker.handleDelivery(handler, message)
+		case <-worker.shutdown:
+			log.Println("Stopped consuming messages.")
+			return
+		}
+	}
+}
+
+func (worker *Worker) handleDelivery(handler Handler, message amqp.Delivery) {
+	defer worker.workerGroup.Done()
+
+	handler(message)
+	err := message.Ack(false)
+	if err != nil {
+		log.Fatalf("Failed to ack message: %v", err)
 	}
 }
 
 func (worker *Worker) Close() {
-	// TODO: do something with unconsumed messages
+	worker.shutdown <- true
+	worker.workerGroup.Wait()
 	worker.Channel.Close()
 }
