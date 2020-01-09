@@ -29,6 +29,14 @@ func TestDeserializeTranscodeCommand(t *testing.T) {
 	}
 }
 
+func TestDeserializeTranscodeCommandError(t *testing.T) {
+	data := []byte(`not_valid`)
+	_, err := ToTranscodeCommand(data)
+	if err == nil {
+		t.Errorf("Expected error while deserializing %v", string(data))
+	}
+}
+
 func assertSerializes(message Message, want string, t *testing.T) {
 	got, err := message.Serialize()
 
