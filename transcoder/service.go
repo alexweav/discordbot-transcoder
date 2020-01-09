@@ -12,7 +12,7 @@ type Service struct {
 
 func Start(conn *Connection) *Service {
 
-	worker := conn.InitializeWorkQueueSubscriber("test.queue", handle)
+	worker := conn.InitializeWorkQueueSubscriber("work.transcode", handle)
 	return &Service{
 		worker: worker,
 	}
