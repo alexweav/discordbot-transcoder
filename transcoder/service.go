@@ -19,7 +19,13 @@ func Start(conn *Connection) *Service {
 }
 
 func handle(message amqp.Delivery) {
-	log.Printf("Got a message: %v", message.Body)
+	command, err := ToTranscodeCommand(message.Body)
+	if err != nil {
+		log.Fatalf("Unparseable message: %v", message.Body)
+		return
+	}
+
+	log.Printf("Got transcode job for file: %v", command.FileName)
 	time.Sleep(5 * time.Second)
 	log.Println("Done.")
 }
