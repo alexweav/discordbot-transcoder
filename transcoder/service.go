@@ -12,14 +12,20 @@ type Service struct {
 
 func Start(conn *Connection) *Service {
 
-	worker := conn.InitializeWorkQueueSubscriber("test.queue", handle)
+	worker := conn.InitializeWorkQueueSubscriber("work.transcode", handle)
 	return &Service{
 		worker: worker,
 	}
 }
 
 func handle(message amqp.Delivery) {
-	log.Printf("Got a message: %v", message.Body)
+	command, err := ToTranscodeCommand(message.Body)
+	if err != nil {
+		log.Fatalf("Unparseable message: %v", message.Body)
+		return
+	}
+
+	log.Printf("Got transcode job for file: %v", command.FileName)
 	time.Sleep(5 * time.Second)
 	log.Println("Done.")
 }
