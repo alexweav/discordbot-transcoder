@@ -16,3 +16,8 @@ discordbot-transcoder
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+
+
+#Added by cargo
+
+/target
