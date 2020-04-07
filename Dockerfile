@@ -1,6 +1,6 @@
 # Build
 
-FROM golang:1.13-alpine AS builder
+FROM rust:1.41-alpine AS builder
 
 # Work outside of $GOPATH, since we're using modules.
 WORKDIR /app
@@ -9,13 +9,11 @@ WORKDIR /app
 COPY . .
 
 # Get deps, clean, and build.
-RUN go mod download && \
-    go clean && \
-    go install
+RUN cargo install --path .
 
 # Create export directory and copy binaries.
 RUN mkdir /export && \
-    cp $GOPATH/bin/* /export
+    cp target/* /export
 
 # Package
 
@@ -28,4 +26,4 @@ RUN mkdir -p /opt/app/bin
 COPY --from=builder /export /opt/app/bin
 
 # Launch application.
-ENTRYPOINT /opt/app/bin/discordbot-transcoder
+ENTRYPOINT /opt/app/bin/release/discordbot-transcoder
