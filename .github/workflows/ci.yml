@@ -12,16 +12,20 @@ jobs:
     steps:
     - uses: actions/checkout@v1
 
-    - name: Build Docker image
-      run: docker build . -t discordbot-transcoder
+    - name: Get gcloud CLI utilities
+      uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      with:
+        service_account_key: ${{secrets.GOOGLE_APPLICATION_CREDENTIALS}}
+        project_id: ${{secrets.GCLOUD_PROJECT_ID}}
 
-    - name: Push Container to AWS ECR
-      env:
-        AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_REGION: us-east-2
+    - name: Configure Docker for GCP
       run: |
-        aws ecr get-login --no-include-email --region ${AWS_REGION} | sh
-        docker tag discordbot-transcoder:latest ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/discordbot-transcoder:latest
-        docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/discordbot-transcoder:latest
+        gcloud auth configure-docker
+
+    - name: Build Container
+      run: docker build . -t transcoder
+
+    - name: GCR Push
+      run: |
+        docker tag transcoder:latest gcr.io/${{secrets.GCLOUD_PROJECT_ID}}/transcoder:latest
+        docker push gcr.io/${{secrets.GCLOUD_PROJECT_ID}}/transcoder:latest
