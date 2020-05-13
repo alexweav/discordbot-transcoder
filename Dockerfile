@@ -1,6 +1,6 @@
 # Build
 
-FROM rust:1.41-alpine AS builder
+FROM rust:1.41-stretch AS builder
 
 # Work outside of $GOPATH, since we're using modules.
 WORKDIR /app
@@ -8,12 +8,16 @@ WORKDIR /app
 # Copy source to image.
 COPY . .
 
+# muslc is required in order to build the rust image.
+RUN apt-get update && apt-get -y install ca-certificates cmake musl-tools libssl-dev && rm -rf /var/lib/apt/lists/*
+
 # Get deps, clean, and build.
-RUN cargo install --path .
+RUN rustup target add x86_64-unknown-linux-musl
+RUN cargo build --target x86_64-unknown-linux-musl --release
 
 # Create export directory and copy binaries.
 RUN mkdir /export && \
-    cp target/* /export
+    cp -r target/* /export
 
 # Package
 
@@ -26,4 +30,4 @@ RUN mkdir -p /opt/app/bin
 COPY --from=builder /export /opt/app/bin
 
 # Launch application.
-ENTRYPOINT /opt/app/bin/release/discordbot-transcoder
+ENTRYPOINT /opt/app/bin/x86_64-unknown-linux-musl/release/discordbot-transcoder
