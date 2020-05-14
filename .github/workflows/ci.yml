@@ -33,4 +33,4 @@ jobs:
 
     - name: GAE Deploy
       run: |
-        gcloud app deploy
+        gcloud app deploy --image-url=gcr.io/${{secrets.GCLOUD_PROJECT_ID}}/transcoder:latest
