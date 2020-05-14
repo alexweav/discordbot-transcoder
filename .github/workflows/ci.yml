@@ -3,6 +3,7 @@ name: DiscordBot-Transcoder-CI
 on:
   push:
     branches:
+      - '**'
       - master
 
 jobs:
@@ -29,3 +30,7 @@ jobs:
       run: |
         docker tag transcoder:latest gcr.io/${{secrets.GCLOUD_PROJECT_ID}}/transcoder:latest
         docker push gcr.io/${{secrets.GCLOUD_PROJECT_ID}}/transcoder:latest
+
+    - name: GAE Deploy
+      run: |
+        gcloud app deploy
